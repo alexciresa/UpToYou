@@ -1,0 +1,45 @@
+CREATE TABLE [WaitStats](
+	[wait_type] nvarchar(60) NOT NULL,
+	[waiting_tasks_count] [bigint] NOT NULL,
+	[wait_time_ms] [bigint] NOT NULL,
+	[signal_wait_time_ms] [bigint] NOT NULL,
+	[collection_time] [datetimeoffset](7) NOT NULL DEFAULT GETDATE(),
+	[snapshot_id] [int] NOT NULL,
+ CONSTRAINT [PK_os_wait_stats] PRIMARY KEY CLUSTERED 
+(
+	[snapshot_id] ASC,
+	[wait_type] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+
+CREATE VIEW WaitStatsDeltas
+AS
+SELECT
+	a.wait_type,
+	b.waiting_tasks_count - a.waiting_tasks_count as waiting_task_count,
+	b.wait_time_ms - a.wait_time_ms as wait_time_ms,
+	b.signal_wait_time_ms - a.signal_wait_time_ms as signal_wait_time_ms,
+	b.collection_time
+FROM WaitStats a
+INNER JOIN WaitStats b
+	ON a.snapshot_id = b.snapshot_id - 1 AND a.wait_type = b.wait_type
+
+------------------- after inserts ---------------------------
+ALTER TABLE WaitStats DROP CONSTRAINT [PK_os_wait_stats]
+
+CREATE CLUSTERED COLUMNSTORE INDEX CCI_WaitStats ON WaitStats
+
+ALTER TABLE WaitStats ADD CONSTRAINT [PK_os_wait_stats] PRIMARY KEY NONCLUSTERED (snapshot_id, wait_type)
+
+DELETE FROM WaitStats 
+WHERE wait_type IN (SELECT wait_type FROM WaitStatsDeltas
+GROUP BY wait_type
+HAVING SUM(wait_time_ms) = 0 AND SUM(signal_wait_time_ms) = 0)
+
+-------------------------------------------------------------
+
+SELECT wait_type, SUM(wait_time_ms), SUM(signal_wait_time_ms) FROM WaitStatsDeltas
+GROUP BY wait_type
+HAVING SUM(wait_time_ms) = 0 AND SUM(signal_wait_time_ms) = 0

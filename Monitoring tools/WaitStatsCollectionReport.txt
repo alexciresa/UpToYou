@@ -1,0 +1,6 @@
+SELECT	wait_type,
+		waiting_tasks_count - LAG(waiting_tasks_count) OVER (ORDER BY wait_type,snapshot_id),
+		wait_time_ms - LAG(wait_time_ms) OVER (ORDER BY wait_type,snapshot_id),
+		signal_wait_time_ms - LAG(signal_wait_time_ms) OVER (ORDER BY wait_type,snapshot_id)
+FROM [dbo].[WaitStats]
+ORDER BY wait_type,snapshot_id

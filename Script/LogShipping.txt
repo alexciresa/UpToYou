@@ -1,0 +1,180 @@
+--DECLARARE VARIABILE PASUL 2 - PRIMARY SERVER
+DECLARE @PRIMARY_DATABASE AS NVARCHAR(50) --NAME OF THE PRIMARY DATABASE
+DECLARE @PRIMARY_SERVER AS NVARCHAR(50) --NAME OF THE PRIMARY SERVER
+DECLARE @SECONDARY_DATABASE AS NVARCHAR(50) --NAME OF THE SECONDARY DB
+DECLARE @SECONDARY_SERVER AS NVARCHAR(50) --NAME OF THE SECONDARY SERVER
+DECLARE @BACKUP_DIRECTORY_PS AS NVARCHAR(500) --PS = PRIMARY SERVER -> DE UNDE LUAM BACKUP-UL (CALEA)
+DECLARE @BACKUP_SHARE_PATH AS NVARCHAR(500)
+DECLARE @BACKUP_JOB_NAME AS NVARCHAR(50) --NUMELE JOBULUI PE CARE-L EXECUTA SQL Agent = JOBUL DE BACKUP
+DECLARE @BACKUP_JOB_ID AS UNIQUEIDENTIFIER
+DECLARE @PRIMARY_DB_ID AS UNIQUEIDENTIFIER
+--DECLARARE VARIABILE PASUL 3 - PRIMARY SERVER
+DECLARE @SCHEDULE_NAME_BACKUP_JOB AS NVARCHAR(128)
+DECLARE @FREQUENCY_TYPE AS INT --Value that indicates when the job is to be executed. frequency_type is int, with a default of 0
+DECLARE @FREQUENCY_SUBDAY_INTERVAL AS INT --Number of frequency_subday_type periods to occur between each execution of the job. frequency_subday_interval is int, with a default of 0.
+DECLARE @ENABLED_JOB AS BIT
+DECLARE @FREQUENCY_SUBDAY_TYPE AS INT
+DECLARE @FREQUENCY_INTERVAL AS INT
+--DECLARARARE VARIABILE PASUL 6 - SECONDARY SERVER
+DECLARE @BACKUP_DIRECTORY_SS AS NVARCHAR(500) --SS = SECONDARY SERVER
+DECLARE @COPY_JOB_NAME AS VARCHAR(50) 
+DECLARE @RESTORE_JOB_NAME AS VARCHAR(50)
+DECLARE @COPY_JOB_ID AS UNIQUEIDENTIFIER 
+DECLARE @RESTORE_JOB_ID AS UNIQUEIDENTIFIER
+DECLARE @SECONDARY_ID AS UNIQUEIDENTIFIER --The ID for the secondary server in the log shipping configuration. secondary_id is uniqueidentifier and cannot be NULL.
+--DECLARARE VARIABILE - PASUL 7 - SECONDARY SERVER
+DECLARE @JOB_ID AS UNIQUEIDENTIFIER --Job identification number of the job to which the schedule is added. job_id is uniqueidentifier, with no default.
+DECLARE @SCHEDULE_NAME_COPY_JOB AS NVARCHAR(128)
+DECLARE @SCHEDULE_NAME_RESTORE_JOB AS NVARCHAR(128)
+DECLARE @SCHEDULE_ID AS INT -- Schedule identification number assigned to the schedule if it is created successfully. schedule_id is an output variable of type int, with no default.
+DECLARE @SCHEDULE_UID AS UNIQUEIDENTIFIER -- A unique identifier for the schedule. schedule_uid is a variable of type uniqueidentifier.
+--DECLARARE VARIABILE - PASUL 8 - SECONDARY SERVER
+DECLARE @RESTORE_MODE AS BIT --0(norecovery)/1(standby)
+--INITIALIZARE VARIABILE PASUL 2 - PRIMARY SERVER
+SET @PRIMARY_DATABASE = 'AdventureWorks2019'
+SET @PRIMARY_SERVER = 'DESKTOP-CAM81FQ'
+SET @SECONDARY_DATABASE = 'AdventureWorks2019'
+SET @BACKUP_DIRECTORY_PS = 'C:\Program Files\Microsoft SQL Server\MSSQL15.MSSQLSERVER\MSSQL\LogShipping'
+SET @BACKUP_SHARE_PATH = '\\DESKTOP-CAM81FQ\LogShipping'
+SET @BACKUP_JOB_NAME = 'LogShipping_Backup'
+--INITIALIZARE VARIABILE PASUL 3 - PRIMARY SERVER
+SET @BACKUP_JOB_NAME = 'LogShipping_Backup'
+SET @SCHEDULE_NAME_BACKUP_JOB = 'ScheduleBackup'
+SET @FREQUENCY_TYPE = 4
+SET @FREQUENCY_SUBDAY_INTERVAL = 5
+SET @FREQUENCY_INTERVAL = 1
+SET @FREQUENCY_SUBDAY_TYPE = 4
+--INITIALIZARE VARIABILE PASUL 5 - PRIMARY SERVER
+SET @ENABLED_JOB = 1
+--INITIALIZARE VARIABILE - PASUL 6 - SECONDARY SERVER
+SET @SECONDARY_SERVER = 'DESKTOP-CAM81FQ\SECONDMSSQLSERVE'
+SET @BACKUP_DIRECTORY_SS = 'C:\Program Files\Microsoft SQL Server\MSSQL15.SECONDMSSQLSERVE\MSSQL\LogShipping'
+SET @COPY_JOB_NAME = 'LogShipping_Copy'
+SET @RESTORE_JOB_NAME = 'LogShipping_Restore'
+--INITIALIZARE VARIABILE - PASUL 7 - SECONDARY SERVER
+SET @COPY_JOB_NAME = 'LogShipping_Copy'
+SET @SCHEDULE_NAME_COPY_JOB = 'ScheduleCopy'
+SET @SCHEDULE_NAME_RESTORE_JOB = 'ScheduleRestore'
+--INITIALIZARE VARIABILE - PASUL 8 - SECONDARY SERVER
+SET @RESTORE_MODE = 1
+
+IF @@SERVERNAME = @PRIMARY_SERVER  AND (SELECT COUNT(primary_id) FROM msdb.dbo.log_shipping_primary_databases where primary_database=@PRIMARY_DATABASE) != 0
+BEGIN
+	USE [master]
+	EXEC sp_delete_log_shipping_primary_secondary  
+	     @primary_database =  @PRIMARY_DATABASE,   
+	     @secondary_server =  @SECONDARY_SERVER,   
+	     @secondary_database =  @SECONDARY_DATABASE
+	USE [master]
+	EXEC sp_delete_log_shipping_primary_database
+		@database = @PRIMARY_DATABASE
+	
+	USE [master]
+	EXEC sp_delete_log_shipping_primary_secondary  
+	     @primary_database =  @PRIMARY_DATABASE,   
+	     @secondary_server =  @SECONDARY_SERVER,   
+	     @secondary_database =  @SECONDARY_DATABASE
+END
+
+IF @@SERVERNAME = @SECONDARY_SERVER AND (SELECT COUNT(secondary_id) FROM msdb.dbo.log_shipping_secondary where primary_database=@PRIMARY_DATABASE) != 0
+BEGIN   
+		USE [master] ;     
+		EXEC sp_delete_log_shipping_secondary_database  
+			@secondary_database =  @SECONDARY_DATABASE
+
+		PRINT 'PASUL 1 - RESTORE FULL&LOG BACKUP ON SECONDARY SERVER' 
+		USE [master]
+		RESTORE DATABASE [AdventureWorks2019]
+			FROM DISK = 'C:\Program Files\Microsoft SQL Server\MSSQL15.SECONDMSSQLSERVE\MSSQL\Backup\FULLforInitialise.bak'
+			WITH
+			REPLACE,
+			MOVE 'AdventureWorks2017' TO 'D:\FaraLastFullBackup\AdventureWorks2017.mdf',
+			MOVE 'AdventureWorks2017_log' TO 'D:\FaraLastFullBackup\AdventureWorks2017_log.ldf',
+			NORECOVERY
+		
+		USE [master]
+		RESTORE LOG [AdventureWorks2019]
+			FROM DISK = 'C:\Program Files\Microsoft SQL Server\MSSQL15.SECONDMSSQLSERVE\MSSQL\Backup\LOGforInitialise.bak'
+			WITH NORECOVERY
+END		
+
+IF @@SERVERNAME = @PRIMARY_SERVER 
+BEGIN
+		--PRINT 'PASUL 2 - PRIMARY SERVER - CREATE LOG SHIPPING' 
+		EXEC master.dbo.sp_add_log_shipping_primary_database   
+			@database = @PRIMARY_DATABASE,  
+			@backup_directory = @BACKUP_DIRECTORY_PS,   
+			@backup_share = @BACKUP_SHARE_PATH,   
+			@backup_job_name = @BACKUP_JOB_NAME,  
+			@backup_job_id = @BACKUP_JOB_ID OUTPUT,   
+			@primary_id = @PRIMARY_DB_ID OUTPUT   
+		--PRINT 'PASUL 3 - PRIMARY SERVER - SCHEDULE BACKUP JOB' 
+		EXEC msdb.dbo.sp_add_jobschedule 
+			@job_name = @BACKUP_JOB_NAME,
+			@name = @SCHEDULE_NAME_COPY_JOB,
+			@freq_type = @FREQUENCY_TYPE,
+			@freq_subday_type = @FREQUENCY_SUBDAY_TYPE,
+			@freq_subday_interval = @FREQUENCY_SUBDAY_INTERVAL,
+			@freq_interval = @FREQUENCY_INTERVAL
+		--PASUL 5 - PRIMARY SERVER
+		USE msdb ;
+		EXEC dbo.sp_update_job  
+			@job_name = @BACKUP_JOB_NAME,   
+			@enabled = @ENABLED_JOB ;
+END
+
+IF @@SERVERNAME = @SECONDARY_SERVER
+BEGIN
+		--PRINT 'PASUL 6 - SECONDARY SERVER'
+		EXEC master.dbo.sp_add_log_shipping_secondary_primary   
+			@primary_server = @PRIMARY_SERVER,   
+			@primary_database = @PRIMARY_DATABASE,  
+			@backup_source_directory = @BACKUP_DIRECTORY_PS,  
+			@backup_destination_directory = @BACKUP_DIRECTORY_SS,   
+			@copy_job_name = @COPY_JOB_NAME,   
+			@restore_job_name = @RESTORE_JOB_NAME,   
+			@copy_job_id = @COPY_JOB_ID OUTPUT,   
+			@restore_job_id = @RESTORE_JOB_ID OUTPUT,   
+			@secondary_id = @SECONDARY_ID OUTPUT ; 
+		--PRINT 'PASUL 7.1 - SECONDARY SERVER'
+		EXEC msdb.dbo.sp_add_jobschedule 
+			@job_name = @COPY_JOB_NAME,
+			@name = @SCHEDULE_NAME_COPY_JOB,
+			@freq_type = @FREQUENCY_TYPE,
+			@freq_subday_type = @FREQUENCY_SUBDAY_TYPE,
+			@freq_subday_interval = @FREQUENCY_SUBDAY_INTERVAL,
+			@freq_interval = @FREQUENCY_INTERVAL
+		--PRINT 'PASUL 7.2 - SECONDARY SERVER'
+		EXEC msdb.dbo.sp_add_jobschedule 
+			@job_name = @RESTORE_JOB_NAME,
+			@name = @SCHEDULE_NAME_RESTORE_JOB,
+			@freq_type = @FREQUENCY_TYPE,
+			@freq_subday_type = @FREQUENCY_SUBDAY_TYPE,
+			@freq_subday_interval = @FREQUENCY_SUBDAY_INTERVAL,
+			@freq_interval = @FREQUENCY_INTERVAL
+		--PRINT 'PASUL 8 - SECONDARY SERVER'
+		EXEC master.dbo.sp_add_log_shipping_secondary_database   
+			@secondary_database = @SECONDARY_DATABASE,   
+			@primary_server = @PRIMARY_SERVER,
+			@primary_database = @PRIMARY_DATABASE,   
+			@restore_mode = @RESTORE_MODE 
+END
+
+IF @@SERVERNAME = @PRIMARY_SERVER
+BEGIN
+		EXEC master.dbo.sp_add_log_shipping_primary_secondary   
+			@primary_database = @PRIMARY_DATABASE,   
+			@secondary_server = @SECONDARY_SERVER,   
+			@secondary_database = @SECONDARY_DATABASE ;  
+END
+ELSE
+BEGIN	
+		USE msdb ;  
+		EXEC dbo.sp_update_job  
+		    @job_name = @COPY_JOB_NAME,   
+		    @enabled = @ENABLED_JOB ;  
+		EXEC dbo.sp_update_job  
+		    @job_name = @RESTORE_JOB_NAME,   
+		    @enabled = @ENABLED_JOB ; 
+END	
+GO

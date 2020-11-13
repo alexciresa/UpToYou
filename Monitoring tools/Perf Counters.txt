@@ -1,0 +1,90 @@
+-- replace instance name --
+LogicalDisk(<AllInstances>)\Avg. Disk sec/Read
+LogicalDisk(<AllInstances>)\Avg. Disk sec/Write
+LogicalDisk(<AllInstances>)\Disk Read Bytes/sec
+LogicalDisk(<AllInstances>)\Disk Reads/sec
+LogicalDisk(<AllInstances>)\Disk Write Bytes/sec
+LogicalDisk(<AllInstances>)\Disk Writes/sec
+LogicalDisk(<AllInstances>)\Split IO/Sec
+
+Memory\Available MBytes
+Memory\Page Faults/sec
+Memory\Page Reads/sec
+Memory\Page Writes/sec
+Memory\Pages Input/sec
+Memory\Pages Output/sec
+Memory\Pages/sec
+
+MSSQL$:Access Methods\Extents Allocated/sec
+MSSQL$:Access Methods\Forwarded Records/sec
+MSSQL$:Access Methods\Full Scans/sec
+MSSQL$:Access Methods\Index Searches/sec
+MSSQL$:Access Methods\Page Splits/sec
+MSSQL$:Access Methods\Range Scans/sec
+MSSQL$:Access Methods\Worktables Created/sec
+
+MSSQL$:Backup Device\Device Throughput Bytes/sec
+
+MSSQL$:Buffer Manager\Checkpoint pages/sec
+MSSQL$:Buffer Manager\Free list stalls/sec
+MSSQL$:Buffer Manager\Lazy writes/sec
+MSSQL$:Buffer Manager\Page life expectancy
+MSSQL$:Buffer Manager\Page reads/sec
+MSSQL$:Buffer Manager\Page writes/sec
+
+MSSQL$:Databases(<AllInstances>)\Backup/Restore Throughput/sec
+MSSQL$:Databases(<AllInstances>)\Data File(s) Size (KB)
+MSSQL$:Databases(<AllInstances>)\Log File(s) Size (KB)
+MSSQL$:Databases(<AllInstances>)\Log Flushes/sec
+MSSQL$:Databases(<AllInstances>)\Log Bytes Flushed/sec
+MSSQL$:Databases(<AllInstances>)\Percent Log Used
+
+MSSQL$:General Statistics\Processes blocked
+MSSQL$:General Statistics\User Connections
+
+MSSQL$:Latches\Latch Waits/sec
+
+MSSQL$:Locks(_Total)\Average Wait Time (ms)
+MSSQL$:Locks(_Total)\Lock Requests/sec
+MSSQL$:Locks(_Total)\Lock Wait Time (ms)
+MSSQL$:Locks(_Total)\Lock Waits/sec
+
+MSSQL$:Memory Manager\Connection Memory (KB)
+MSSQL$:Memory Manager\Lock Blocks
+MSSQL$:Memory Manager\Lock Blocks Allocated
+MSSQL$:Memory Manager\Lock Memory (KB)
+MSSQL$:Memory Manager\Lock Owner Blocks Allocated
+MSSQL$:Memory Manager\Memory Grants Pending
+MSSQL$:Memory Manager\Stolen Server Memory (KB)
+MSSQL$:Memory Manager\Target Server Memory (KB)
+MSSQL$:Memory Manager\Total Server Memory (KB)
+
+MSSQL$:Plan Cache\Cache Hit Ratio
+MSSQL$:Plan Cache\Cache Object Counts
+MSSQL$:Plan Cache\Cache Objects in use
+MSSQL$:Plan Cache\Cache Pages
+
+MSSQL$:SQL Statistics\Batch Requests/sec
+MSSQL$:SQL Statistics\SQL Compilations/sec
+MSSQL$:SQL Statistics\SQL Re-Compilations/sec
+
+MSSQL$:Transactions\Longest Transaction Running Time
+
+MSSQL$:Wait Statistics\All
+
+Network interface(<AllInstances>)\Bytes Received/sec
+Network interface(<AllInstances>)\Bytes Sent/sec
+Network interface(<AllInstances>)\Bytes Total/sec
+
+Paging File(_Total)\% Usage
+
+Process (sqlservr.exe)\% Processor Time
+Process (sqlservr.exe)\% Privileged Time
+
+Processor(_Total)\% Processor Time
+Processor(_Total)\% Privileged Time
+
+System\Processor Queue Length
+
+Host:
+(if VMWares)Memory\Memory Ballooned

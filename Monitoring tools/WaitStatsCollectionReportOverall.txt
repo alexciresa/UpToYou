@@ -1,0 +1,12 @@
+SELECT  max.wait_type,
+		max.waiting_tasks_count - min.waiting_tasks_count, 
+		max.wait_time_ms - min.wait_time_ms,
+		max.signal_wait_time_ms - min.signal_wait_time_ms
+FROM 
+(SELECT * FROM WaitStats
+WHERE snapshot_id = (SELECT MAX(snapshot_id) FROM WaitStats)) as max
+INNER JOIN
+(SELECT * FROM WaitStats
+WHERE snapshot_id = (SELECT MIN(snapshot_id) FROM WaitStats)) as min
+	ON min.wait_type = max.wait_type
+ORDER BY 3 dESC
