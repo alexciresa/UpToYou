@@ -1,0 +1,13 @@
+$ErrorActionPreference = "Continue"
+$VerbosePreference = "Continue"
+$name = HOSTNAME
+$IsVirtual=((Get-WmiObject win32_computersystem).model -eq 'VMware Virtual Platform')
+if ($IsVirtual)
+{
+logman create counter SQLDataSetPerfmonCounters2 -f bincirc -si 15 -cf "C:\DataColectors\PerfmonCountersNamedInstance2.txt" -o "C:\DataColectors\SQLDataSetPerfmonCounters2.blg" 
+}
+else
+{
+logman create counter SQLDataSetPerfmonCounters2 -f bincirc -si 15 -cf "C:\DataColectors\PerfmonCountersNamedInstance1.txt" -o "C:\DataColectors\SQLDataSetPerfmonCounters2.blg"
+}
+logman start SQLDataSetPerfmonCounters2
