@@ -1,0 +1,101 @@
+<#
+Please modify $pathForFile with the exact location where csv file will be 
+Please modify $pathForCounters with the exact location where txt file will be (txt file contains the counters paths)
+Please change $instanceName with the name of your sql server named instance
+#>
+$pathForFile = "C:\DataColectors\SQLDataSetPerfmonCounters.blg"
+$pathForCounters = "C:\DataColectors\Counters.txt"
+$instanceName = "SECONDMSSSQLSERVER"
+
+$ErrorActionPreference = "Continue"
+$VerbosePreference = "Continue"
+$IsVirtual=((Get-WmiObject win32_computersystem).model -eq 'VMware Virtual Platform')
+$name = HOSTNAME
+$counters = @("\LogicalDisk(*)\Avg. Disk sec/Read",
+"\LogicalDisk(*)\Avg. Disk sec/Write",
+"\LogicalDisk(*)\Disk Read Bytes/sec",
+"\LogicalDisk(*)\Disk Reads/sec",
+"\LogicalDisk(*)\Disk Write Bytes/sec",
+"\LogicalDisk(*)\Disk Writes/sec",
+"\LogicalDisk(*)\Split IO/Sec",
+"\Memory\Available MBytes",
+"\Memory\Page Faults/sec",
+"\Memory\Page Reads/sec",
+"\Memory\Page Writes/sec",
+"\Memory\Pages Input/sec",
+"\Memory\Pages Output/sec",
+"\Memory\Pages/sec",
+"\Network interface(*)\Bytes Received/sec",
+"\Network interface(*)\Bytes Sent/sec",
+"\Network interface(*)\Bytes Total/sec",
+"\Paging File(_Total)\% Usage",
+"\Processor(_Total)\% Processor Time",
+"\Processor(_Total)\% Privileged Time",
+"\MSSQL$$instanceName:Access Methods\Extents Allocated/sec",
+"\MSSQL$$instanceName:Access Methods\Forwarded Records/sec",
+"\MSSQL$$instanceName:Access Methods\Full Scans/sec",
+"\MSSQL$$instanceName:Access Methods\Index Searches/sec",
+"\MSSQL$$instanceName:Access Methods\Page Splits/sec",
+"\MSSQL$$instanceName:Access Methods\Range Scans/sec",
+"\MSSQL$$instanceName:Access Methods\Worktables Created/sec",
+"\MSSQL$$instanceName:Backup Device\Device Throughput Bytes/sec",
+"\MSSQL$$instanceName:Buffer Manager\Checkpoint pages/sec",
+"\MSSQL$$instanceName:Buffer Manager\Free list stalls/sec",
+"\MSSQL$$instanceName:Buffer Manager\Lazy writes/sec",
+"\MSSQL$$instanceName:Buffer Manager\Page life expectancy",
+"\MSSQL$$instanceName:Buffer Manager\Page reads/sec",
+"\MSSQL$$instanceName:Buffer Manager\Page writes/sec",
+"\MSSQL$$instanceName:Databases(*)\Backup/Restore Throughput/sec",
+"\MSSQL$$instanceName:Databases(*)\Data File(s) Size (KB)",
+"\MSSQL$$instanceName:Databases(*)\Log File(s) Size (KB)",
+"\MSSQL$$instanceName:Databases(*)\Log Flushes/sec",
+"\MSSQL$$instanceName:Databases(*)\Percent Log Used",
+"\MSSQL$$instanceName:Databases(*)\Log Bytes Flushed/sec",
+"\MSSQL$$instanceName:General Statistics\Processes blocked",
+"\MSSQL$$instanceName:General Statistics\User Connections",
+"\MSSQL$$instanceName:Latches\Latch Waits/sec",
+"\MSSQL$$instanceName:Locks(_Total)\Average Wait Time (ms)",
+"\MSSQL$$instanceName:Locks(_Total)\Lock Requests/sec",
+"\MSSQL$$instanceName:Locks(_Total)\Lock Wait Time (ms)",
+"\MSSQL$$instanceName:Locks(_Total)\Lock Waits/sec",
+"\MSSQL$$instanceName:Memory Manager\Connection Memory (KB)",
+"\MSSQL$$instanceName:Memory Manager\Lock Blocks",
+"\MSSQL$$instanceName:Memory Manager\Lock Blocks Allocated",
+"\MSSQL$$instanceName:Memory Manager\Lock Memory (KB)",
+"\MSSQL$$instanceName:Memory Manager\Lock Owner Blocks Allocated",
+"\MSSQL$$instanceName:Memory Manager\Memory Grants Pending",
+"\MSSQL$$instanceName:Memory Manager\Stolen Server Memory (KB)",
+"\MSSQL$$instanceName:Memory Manager\Target Server Memory (KB)",
+"\MSSQL$$instanceName:Memory Manager\Total Server Memory (KB)",
+"\MSSQL$$instanceName:Plan Cache(_Total)\Cache Hit Ratio",
+"\MSSQL$$instanceName:Plan Cache(_Total)\Cache Object Counts",
+"\MSSQL$$instanceName:Plan Cache(_Total)\Cache Objects in use",
+"\MSSQL$$instanceName:Plan Cache(_Total)\Cache Pages",
+"\MSSQL$$instanceName:SQL Statistics\Batch Requests/sec",
+"\MSSQL$$instanceName:SQL Statistics\SQL Compilations/sec",
+"\MSSQL$$instanceName:SQL Statistics\SQL Re-Compilations/sec",
+"\MSSQL$$instanceName:Transactions\Longest Transaction Running Time",
+"\MSSQL$$instanceName:Wait Statistics(*)\Lock waits",
+"\MSSQL$$instanceName:Wait Statistics(*)\Log buffer waits",
+"\MSSQL$$instanceName:Wait Statistics(*)\Log write waits",
+"\MSSQL$$instanceName:Wait Statistics(*)\Memory grant queue waits",
+"\MSSQL$$instanceName:Wait Statistics(*)\Network IO waits",
+"\MSSQL$$instanceName:Wait Statistics(*)\Non-Page latch waits",
+"\MSSQL$$instanceName:Wait Statistics(*)\Page IO latch waits",
+"\MSSQL$$instanceName:Wait Statistics(*)\Page latch waits",
+"\MSSQL$$instanceName:Wait Statistics(*)\Thread-safe memory objects waits",
+"\MSSQL$$instanceName:Wait Statistics(*)\Transaction ownership waits",
+"\MSSQL$$instanceName:Wait Statistics(*)\Wait for the worker",
+"\MSSQL$$instanceName:Wait Statistics(*)\Workspace synchronization waits",
+"\\$name\process(sqlservr)\% processor time",
+"\\$name\process(sqlservr)\% privileged time",
+"\\$name\process(sqlservr)\ID Process",
+"\System\Processor Queue Length")
+if ($IsVirtual)
+{
+$counters += @("\Memory\Memory Ballooned")
+}
+New-Item $pathForCounters
+Set-Content $pathForCounters $counters
+logman create counter SQLDataSetPerfmonCounters -f bincirc -si 15 -cf $pathForCounters -o $pathForFile
+logman start SQLDataSetPerfmonCounters
