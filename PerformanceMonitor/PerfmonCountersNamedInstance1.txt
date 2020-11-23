@@ -74,6 +74,6 @@
 \MSSQL$:Wait Statistics(*)\Transaction ownership waits
 \MSSQL$:Wait Statistics(*)\Wait for the worker
 \MSSQL$MSSQL$:Wait Statistics(*)\Workspace synchronization waits
-\\$name\process(sqlservr)\% processor time
-\\$name\process(sqlservr)\% privileged time
+\\\process(sqlservr)\% processor time
+\\\process(sqlservr)\% privileged time
 \System\Processor Queue Length
