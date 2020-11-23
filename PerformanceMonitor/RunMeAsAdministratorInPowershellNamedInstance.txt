@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Continue"
 $VerbosePreference = "Continue"
-$name = HOSTNAME
+$InstanceName = "SECONDMSSQLSERVE"
 $IsVirtual=((Get-WmiObject win32_computersystem).model -eq 'VMware Virtual Platform')
 if ($IsVirtual)
 {
