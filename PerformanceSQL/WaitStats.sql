@@ -76,6 +76,9 @@ SELECT  ws.snapshotId,
 FROM WaitStats AS ws
 INNER JOIN WaitType AS wt
 ON ws.idWaitType = wt.idWaitType
+WHERE  (ws.waitingTasksCount - LAG(ws.waitingTasksCount,1,0) OVER (PARTITION BY wt.waitType ORDER BY ws.snapshotId)) >= 0 
+	AND (ws.waitTime_ms - LAG(ws.waitTime_ms,1,0) OVER (PARTITION BY wt.waitType ORDER BY ws.snapshotId)) >= 0 
+	AND (ws.signalWaitTime_ms - LAG(ws.signalWaitTime_ms,1,0) OVER (PARTITION BY wt.waitType ORDER BY ws.snapshotId)) >= 0
 --ORDER BY collectionTime DESC, ws.snapshotId, idWaitType 
 GO
 
