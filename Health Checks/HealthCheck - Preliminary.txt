@@ -1,0 +1,40 @@
+Storage
+----------------
+data, log, binaries, backups, tempdb on the same disk
+Disk Free Space %
+auto shrink enabled
+
+Support
+----------------
+Windows version
+SQL Server edition and version
+
+Security
+----------------
+database and job ownership
+sysadmins
+
+Stability
+----------------
+last checkdb
+page verify checksum
+
+Performance
+----------------
+Index fragmentation
+last Statistics update
+Index and statistics maintenance
+Query Store (SQL 2016 and later)
+min and max server memory vs server memory
+
+HA & DR
+----------------
+RTO, RPO
+current backup strategy 
+backup checksum and verify
+backup compression (for SQL 2012 or later)
+
+Alerts
+----------------
+No alerts
+Job failed alerts
