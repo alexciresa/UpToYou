@@ -27,6 +27,7 @@ Index and statistics maintenance
 Query Store (SQL 2016 and later)
 min and max server memory vs server memory
 CPUs used
+IFI
 Power mode
 
 HA & DR
