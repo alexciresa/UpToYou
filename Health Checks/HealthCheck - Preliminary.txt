@@ -3,6 +3,7 @@ Storage
 data, log, binaries, backups, tempdb on the same disk
 Disk Free Space %
 auto shrink enabled
+Auto grow settings
 
 Support
 ----------------
